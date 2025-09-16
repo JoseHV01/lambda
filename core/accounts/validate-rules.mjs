@@ -1,4 +1,4 @@
-const emailPattern = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 function humanize(field) {
   return field.replace(/_/g, " ");

@@ -27,52 +27,40 @@ export const handler = async (event) => {
     const results = [];
 
     for (let row = 5; row <= range.e.r + 1; row++) {
-      let account = {
-        account_name: sheet[`B${row}`]?.v ?? null,
-        first_name: sheet[`C${row}`]?.v ?? null,
-        last_name: sheet[`D${row}`]?.v ?? null,
-        ssn: sheet[`E${row}`]?.v ?? null,
-        email: sheet[`F${row}`]?.v ?? null,
-        phone_number: sheet[`G${row}`]?.v ?? null,
-        address: sheet[`H${row}`]?.v ?? null,
-        zip_code: sheet[`I${row}`]?.v ?? null,
-        gender: sheet[`J${row}`]?.v ?? null,
-        marital_status: sheet[`K${row}`]?.v ?? null,
-        date_of_birth: sheet[`L${row}`]?.w ?? sheet[`L${row}`]?.v ?? null,
-      };
+        let policy = {
+            account_email: sheet[`B${row}`]?.v ?? null,
+            business_line: sheet[`C${row}`]?.v ?? null,
+            request_type: sheet[`D${row}`]?.v ?? null,
+            policy_number: sheet[`E${row}`]?.v ?? null,
+            effective_date: sheet[`F${row}`]?.w ?? sheet[`F${row}`]?.v ?? null,
+            expiration_date: sheet[`G${row}`]?.w ?? sheet[`G${row}`]?.v ?? null,
+            insurance_company: sheet[`H${row}`]?.v ?? null,
+            policy_prime: sheet[`I${row}`]?.v ?? null,
+            coverage: sheet[`J${row}`]?.v ?? null,
+            deductible: sheet[`K${row}`]?.v ?? null,
+            object_to_insured: sheet[`L${row}`]?.v ?? null,
+            agent_email: sheet[`M${row}`]?.v ?? null,
+            details_for_policy: sheet[`N${row}`]?.v ?? null,
+          };
 
-      const hasAnyValue = Object.values(account).some(
+      const hasAnyValue = Object.values(policy).some(
         (v) => v !== null && v !== undefined && v !== ""
       );
       if (!hasAnyValue) continue;
 
       const errors = [];
-      for (const key of Object.keys(account)) {
-        const validation = validateField(key, account[key]);
+      for (const key of Object.keys(policy)) {
+        const validation = validateField(key, policy[key]);
         if (!validation.valid) errors.push(validation.error);
       }
 
-      ["ssn", "phone_number", "zip_code"].forEach((key) => {
-        if (account[key] !== null && account[key] !== undefined) {
-          account[key] = String(account[key]);
+      ["policy_prime", "coverage", "deductible"].forEach((key) => {
+        if (typeof policy[key] === "string") {
+          policy[key] = policy[key].replace(/\$/g, "").trim();
         }
       });
 
-      if (account.date_of_birth) {
-        const [month, day, year] = account.date_of_birth.split(/[\/-]/);
-        const date = new Date(`${year}-${month}-${day}T04:00:00.000+00:00`);
-
-        if (!isNaN(date.getTime())) {
-          account.date_of_birth = date.toISOString();
-        } else {
-          errors.push(
-            `The provided date_of_birth "${account.date_of_birth}" is invalid. Please check the day, month, and year.`
-          );
-          account.date_of_birth = null;
-        }
-      }
-
-      results.push({ row, data: account, errors });
+      results.push({ row, data: policy, errors });
     }
 
     const validatedResults = await validateGlobal(results);
@@ -87,7 +75,7 @@ export const handler = async (event) => {
       total_rows_failed: failed.length,
       success,
       failed,
-      entity: event.entity
+      entity: event.entity,
     };
 
     const ENDPOINT_CALLBACK_URL = 'https://apistg.mymasterbook.net/upload-file/callback';
@@ -106,7 +94,7 @@ export const handler = async (event) => {
     return {
       statusCode: 500,
       body: JSON.stringify({
-        error: "Internal error inside Lambda Accounts",
+        error: "Internal error inside Lambda Policies",
         message: err.message,
         event: event,
       }),

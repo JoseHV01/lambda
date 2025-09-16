@@ -1,24 +1,18 @@
-import * as accountsProcessor from "./core/accounts/index.mjs";
+import * as accountsHandler from "./core/accounts/index.mjs";
+import * as policiesHandler from "./core/policies/index.mjs";
 
 export const handler = async (event) => {
-  try {
-    console.log("Lambda event:", event);
+  const entity = event.entity;
 
-    switch (event.entity) {
-      case "accounts":
-        return await accountsProcessor.handler(event);
-
-      default:
-        return {
-          statusCode: 400,
-          body: JSON.stringify({ error: `Entity '${event.entity}' not supported` }),
-        };
-    }
-  } catch (err) {
-    console.error("Dispatcher error:", err);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: err.message }),
-    };
+  switch (entity) {
+    case "accounts":
+      return await accountsHandler.handler(event);
+    case "policies":
+      return await policiesHandler.handler(event);
+    default:
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: `Entity '${entity}' not supported` }),
+      };
   }
 };
